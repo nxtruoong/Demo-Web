@@ -1,0 +1,124 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useCart } from "../context/CartContext";
+import "./Navbar.css";
+
+export default function Navbar() {
+  const { totalItems, dispatch } = useCart();
+  const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handler = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handler);
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
+  useEffect(() => { setMenuOpen(false); }, [location]);
+
+  function handleSearch(e) {
+    e.preventDefault();
+    if (query.trim()) {
+      navigate(`/products?search=${encodeURIComponent(query.trim())}`);
+      setSearchOpen(false);
+      setQuery("");
+    }
+  }
+
+  return (
+    <>
+      <nav className={`navbar ${scrolled ? "navbar--scrolled" : ""}`}>
+        <div className="navbar__inner">
+          <Link to="/" className="navbar__logo">
+            <span className="navbar__logo-icon">🌿</span>
+            <span className="navbar__logo-text">
+              Rễ<strong>Tươi</strong>
+            </span>
+          </Link>
+
+          <ul className="navbar__links">
+            <li><Link to="/">Trang Chủ</Link></li>
+            <li><Link to="/products">Tất Cả Sản Phẩm</Link></li>
+            <li><Link to="/products?category=fruits">Trái Cây</Link></li>
+            <li><Link to="/products?category=vegetables">Rau Củ</Link></li>
+            <li><Link to="/products?category=grains">Gạo & Ngũ Cốc</Link></li>
+            <li><Link to="/about">Về Chúng Tôi</Link></li>
+          </ul>
+
+          <div className="navbar__actions">
+            <button
+              className="navbar__icon-btn"
+              onClick={() => setSearchOpen(s => !s)}
+              aria-label="Tìm kiếm"
+              title="Tìm kiếm sản phẩm"
+            >
+              🔍
+            </button>
+            <button
+              className="navbar__icon-btn navbar__cart-btn"
+              onClick={() => dispatch({ type: "TOGGLE_OPEN" })}
+              aria-label="Mở giỏ hàng"
+              title="Xem giỏ hàng"
+            >
+              🛒
+              {totalItems > 0 && (
+                <span className="navbar__cart-badge">{totalItems}</span>
+              )}
+            </button>
+            <button
+              className="navbar__hamburger"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Menu"
+            >
+              {menuOpen ? "✕" : "☰"}
+            </button>
+          </div>
+        </div>
+
+        {searchOpen && (
+          <div className="navbar__search-bar">
+            <form onSubmit={handleSearch} className="navbar__search-form">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Tìm cam, gạo, mật ong…"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                className="navbar__search-input"
+              />
+              <button type="submit" className="btn btn-primary" style={{ padding: "10px 20px" }}>
+                Tìm Kiếm
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline"
+                style={{ padding: "10px 16px" }}
+                onClick={() => setSearchOpen(false)}
+              >
+                Hủy
+              </button>
+            </form>
+          </div>
+        )}
+      </nav>
+
+      <div className={`mobile-menu ${menuOpen ? "mobile-menu--open" : ""}`}>
+        <ul>
+          <li><Link to="/">🏠 Trang Chủ</Link></li>
+          <li><Link to="/products">🛍️ Tất Cả Sản Phẩm</Link></li>
+          <li><Link to="/products?category=fruits">🍊 Trái Cây</Link></li>
+          <li><Link to="/products?category=vegetables">🥦 Rau Củ Quả</Link></li>
+          <li><Link to="/products?category=grains">🌾 Gạo & Ngũ Cốc</Link></li>
+          <li><Link to="/products?category=herbs">🌿 Gia Vị & Thảo Mộc</Link></li>
+          <li><Link to="/products?category=honey">🍯 Mật Ong</Link></li>
+          <li><Link to="/about">ℹ️ Về Chúng Tôi</Link></li>
+        </ul>
+      </div>
+      {menuOpen && <div className="mobile-overlay" onClick={() => setMenuOpen(false)} />}
+    </>
+  );
+}
